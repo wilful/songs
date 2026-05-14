@@ -1,31 +1,33 @@
-# ChordPro Makefile
-
-# ChordPro configuration file
 CONFIG := .chordpro.json
+SONGS := $(shell find . -maxdepth 2 -type f -name '*.cho' ! -name 'default.cho' | sort)
+PDFS := $(SONGS:.cho=.pdf)
+SONGBOOK := songbook.pdf
 
-# Default target: Generate individual PDFs and a combined songbook
-all: songbook.pdf
+.PHONY: all clean pdfs
 
-# Target to generate individual PDFs for each song
-# Uses a shell loop to safely handle spaces in filenames
-pdfs:
-	@find . -maxdepth 2 -name "*.cho" -not -name "default.cho" -exec sh -c ' \
-		for f; do \
-			echo "Generating PDF for $$f..."; \
-			chordpro --config=$(CONFIG) --output="$${f%.cho}.pdf" "$$f"; \
-		done' sh {} +
+# Build both individual PDFs and the combined songbook by default
+all: pdfs $(SONGBOOK)
 
-# Target to generate a single combined songbook PDF
-# Uses --filelist to safely handle spaces in filenames
-songbook.pdf:
-	@echo "Generating combined songbook.pdf..."
-	@find . -maxdepth 2 -name "*.cho" -not -name "default.cho" | sort > .filelist.txt
-	@chordpro --config=$(CONFIG) --filelist=.filelist.txt --output=$@
-	@rm .filelist.txt
+pdfs: $(PDFS)
 
-# Remove all generated PDF files
+%.pdf: %.cho $(CONFIG)
+	@echo "Generating $@"
+	@chordpro \
+		--config=$(CONFIG) \
+		--output="$@" \
+		"$<"
+
+$(SONGBOOK): $(SONGS) $(CONFIG)
+	@echo "Generating $(SONGBOOK)"
+	@# Using printf to handle potential special characters in filenames
+	@printf '%s\n' $(SONGS) > .filelist.txt
+	@chordpro \
+		--config=$(CONFIG) \
+		--filelist=.filelist.txt \
+		--output="$@"
+	@rm -f .filelist.txt
+
 clean:
-	@echo "Cleaning up PDF files..."
+	@echo "Cleaning PDFs"
+	@# Using find to catch all PDFs including those with spaces
 	@find . -maxdepth 2 -name "*.pdf" -delete
-
-.PHONY: all pdfs clean
