@@ -4,7 +4,7 @@
 CONFIG := .chordpro.json
 
 # Default target: Generate individual PDFs and a combined songbook
-all: pdfs songbook.pdf
+all: songbook.pdf
 
 # Target to generate individual PDFs for each song
 # Uses a shell loop to safely handle spaces in filenames
