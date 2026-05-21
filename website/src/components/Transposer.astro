@@ -1,0 +1,183 @@
+---
+---
+
+<div class="transposer-widget">
+  <span class="widget-label">Тональность:</span>
+  <div class="controls-group">
+    <button class="btn-transpose" id="transpose-down" aria-label="Transpose down">-1</button>
+    <span class="transpose-value" id="transpose-val">0</span>
+    <button class="btn-transpose" id="transpose-up" aria-label="Transpose up">+1</button>
+  </div>
+  <button class="btn-reset" id="transpose-reset">Сброс</button>
+</div>
+
+<style>
+  .transposer-widget {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    gap: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: var(--transition-smooth);
+    user-select: none;
+  }
+
+  .widget-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .controls-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    padding: 2px;
+    border-radius: 9999px;
+    gap: 2px;
+  }
+
+  .btn-transpose {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-transpose:hover {
+    background: var(--border-color);
+    color: var(--accent);
+  }
+
+  .transpose-value {
+    min-width: 24px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .btn-reset {
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-reset:hover {
+    color: var(--text-primary);
+    background: var(--border-color);
+  }
+</style>
+
+<script>
+  // Chords scale definitions
+  const scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const scaleFlats = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+  function transposeChord(chord: string, steps: number): string {
+    if (!chord) return '';
+    
+    // Support slash chords recursively (e.g. C/E)
+    if (chord.includes('/')) {
+      return chord.split('/').map(part => transposeChord(part, steps)).join('/');
+    }
+
+    // Capture standard chords + Russian H notation
+    const match = chord.match(/^([A-G][b#]?|H[b#]?)/);
+    if (!match) return chord;
+
+    let note = match[1];
+    const suffix = chord.slice(note.length);
+
+    // Normalize H to B-flat / B
+    let isH = false;
+    if (note === 'H') {
+      note = 'B';
+      isH = true;
+    } else if (note === 'Hb') {
+      note = 'Bb';
+      isH = true;
+    }
+
+    let index = scale.indexOf(note);
+    if (index === -1) {
+      index = scaleFlats.indexOf(note);
+    }
+    if (index === -1) return chord; // fallback
+
+    // Shift steps
+    let newIndex = (index + steps) % 12;
+    if (newIndex < 0) newIndex += 12;
+
+    let newNote = scale[newIndex];
+
+    // If original was in H notation, let's keep H notation
+    if (isH) {
+      if (newNote === 'B') newNote = 'H';
+      if (newNote === 'A#') newNote = 'B'; // in German notation B = B-flat, H = B
+      if (newNote === 'Bb') newNote = 'B';
+    }
+
+    return newNote + suffix;
+  }
+
+  // State
+  let currentOffset = 0;
+
+  // DOM Elements
+  const btnDown = document.getElementById('transpose-down');
+  const btnUp = document.getElementById('transpose-up');
+  const btnReset = document.getElementById('transpose-reset');
+  const valDisplay = document.getElementById('transpose-val');
+
+  function updateChords(offset: number) {
+    const chordElements = document.querySelectorAll('.chord[data-original-chord]');
+    chordElements.forEach(el => {
+      const original = el.getAttribute('data-original-chord');
+      if (original) {
+        const transposed = transposeChord(original, offset);
+        el.textContent = transposed;
+      }
+    });
+
+    if (valDisplay) {
+      valDisplay.textContent = (offset > 0 ? '+' : '') + offset;
+    }
+    currentOffset = offset;
+  }
+
+  btnDown?.addEventListener('click', () => {
+    updateChords(currentOffset - 1);
+  });
+
+  btnUp?.addEventListener('click', () => {
+    updateChords(currentOffset + 1);
+  });
+
+  btnReset?.addEventListener('click', () => {
+    updateChords(0);
+  });
+</script>

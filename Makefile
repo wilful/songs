@@ -3,7 +3,7 @@ SONGS := $(shell find . -maxdepth 2 -type f -name '*.cho' ! -name 'default.cho' 
 PDFS := $(SONGS:.cho=.pdf)
 SONGBOOK := songbook.pdf
 
-.PHONY: all clean pdfs
+.PHONY: all clean pdfs dev site
 
 # Build both individual PDFs and the combined songbook by default
 all: pdfs $(SONGBOOK)
@@ -27,7 +27,16 @@ $(SONGBOOK): $(SONGS) $(CONFIG)
 		--output="$@"
 	@rm -f .filelist.txt
 
+dev:
+	@echo "Starting local website development server..."
+	@cd website && npm install && npm run dev
+
+site:
+	@echo "Building local static website..."
+	@cd website && npm install && npm run build
+
 clean:
 	@echo "Cleaning PDFs"
 	@# Using find to catch all PDFs including those with spaces
 	@find . -maxdepth 2 -name "*.pdf" -delete
+

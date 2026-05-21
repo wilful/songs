@@ -1,0 +1,226 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Transposer from '../../components/Transposer.astro';
+import AutoScroller from '../../components/AutoScroller.astro';
+import { getAllSongs } from '../../utils/songParser.js';
+
+export async function getStaticPaths() {
+  const songs = getAllSongs();
+  return songs.map(song => ({
+    params: { artist: song.artistSlug, song: song.songSlug },
+    props: { song }
+  }));
+}
+
+const { song } = Astro.props;
+---
+
+<MainLayout 
+  title={`${song.artist} — ${song.title}`} 
+  activeArtistSlug={song.artistSlug} 
+  activeSongSlug={song.songSlug}
+>
+  <article class="song-article">
+    <!-- Header info -->
+    <header class="song-header">
+      <div class="header-main">
+        <h1 class="song-title">{song.title}</h1>
+        <div class="song-author">{song.artist}</div>
+      </div>
+      
+      <!-- Key & Tempo badges if present -->
+      <div class="song-badges">
+        {song.key && (
+          <div class="song-badge" title="Оригинальная тональность">
+            <span class="badge-icon">🔑</span>
+            <span class="badge-text">{song.key}</span>
+          </div>
+        )}
+        {song.tempo && (
+          <div class="song-badge" title="Темп (BPM)">
+            <span class="badge-icon">⏱</span>
+            <span class="badge-text">{song.tempo} bpm</span>
+          </div>
+        )}
+      </div>
+    </header>
+
+    <!-- Toolbar controls -->
+    <div class="song-toolbar">
+      <Transposer />
+      <AutoScroller />
+    </div>
+
+    <!-- Rendered Song Body -->
+    <section class="song-content-wrapper">
+      <Fragment set:html={song.html} />
+    </section>
+  </article>
+</MainLayout>
+
+<style is:global>
+  /* Global Song Sheet Styling */
+  .song-article {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-bottom: 80px; /* Space at bottom for scrolling */
+  }
+
+  .song-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+  }
+
+  .song-title {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+  }
+
+  .song-author {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  .song-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .song-badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* Toolbar styling */
+  .song-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    padding: 12px 0;
+    background: var(--bg-main);
+    z-index: 10;
+    border-bottom: 1px dashed var(--border-color);
+  }
+
+  /* Song Content Parser Styles */
+  .song-content-wrapper {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+
+  .song-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .song-paragraph {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .song-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    line-height: 2.2; /* Extra height to accommodate chords above */
+  }
+
+  /* Special line type for guitar tabs */
+  .song-line.tab-line {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.4;
+  }
+
+  .chord-lyrics-pair {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    margin-right: 4px; /* Space between words */
+  }
+
+  .chord {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--chord-color);
+    background: var(--chord-bg);
+    padding: 1px 4px;
+    border-radius: 4px;
+    line-height: 1.1;
+    margin-bottom: 5px; /* Spacing between chord and text */
+    width: fit-content;
+    user-select: none; /* Keep chord separate from lyrics selection */
+    cursor: pointer;
+    transition: var(--transition-smooth);
+  }
+
+  .chord:hover {
+    background: rgba(236, 72, 153, 0.25);
+  }
+
+  .lyrics {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    white-space: pre; /* Keep exact spacing */
+  }
+
+  .song-comment {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-top: 16px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+  }
+
+  /* Target adjustments on smaller screens */
+  @media (max-width: 600px) {
+    .song-title {
+      font-size: 2rem;
+    }
+    
+    .lyrics {
+      font-size: 1rem;
+    }
+
+    .chord {
+      font-size: 0.78rem;
+    }
+  }
+</style>

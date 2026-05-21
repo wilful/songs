@@ -1,0 +1,241 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { getAllSongs } from '../utils/songParser.js';
+
+const songs = getAllSongs();
+
+// Calculate stats
+const totalSongs = songs.length;
+const artists = new Set(songs.map(s => s.artist));
+const totalArtists = artists.size;
+
+// Group songs by artist for main display
+const groupedSongs = songs.reduce((acc, song) => {
+  if (!acc[song.artist]) {
+    acc[song.artist] = {
+      name: song.artist,
+      slug: song.artistSlug,
+      songs: []
+    };
+  }
+  acc[song.artist].songs.push(song);
+  return acc;
+}, {} as Record<string, { name: string; slug: string; songs: typeof songs }>);
+
+const sortedArtists = Object.values(groupedSongs).sort((a, b) => a.name.localeCompare(b.name));
+---
+
+<MainLayout title="Главная">
+  <div class="welcome-container">
+    <div class="welcome-card">
+      <h1 class="welcome-title">Твой цифровой песенник</h1>
+      <p class="welcome-text">
+        Добро пожаловать! Здесь собраны твои любимые песни в удобном интерактивном формате. Ты можешь искать песни, транспонировать аккорды в любую тональность и использовать автоскролл для игры без рук.
+      </p>
+    </div>
+
+    <!-- Quick Stats Dashboard -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🎤</div>
+        <div class="stat-info">
+          <div class="stat-val">{totalArtists}</div>
+          <div class="stat-lbl">Исполнителей</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎸</div>
+        <div class="stat-info">
+          <div class="stat-val">{totalSongs}</div>
+          <div class="stat-lbl">Песен всего</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Directory list -->
+    <div class="directory-section">
+      <h2 class="section-title">Каталог исполнителей</h2>
+      <div class="artists-grid">
+        {sortedArtists.map(artist => (
+          <div class="artist-card">
+            <h3 class="artist-card-title">{artist.name}</h3>
+            <span class="songs-count">{artist.songs.length} песени/ей</span>
+            <ul class="artist-songs-list">
+              {artist.songs.slice(0, 4).map(song => (
+                <li>
+                  <a href={`/songs/${song.artistSlug}/${song.songSlug}/`} class="artist-song-link">
+                    {song.title}
+                  </a>
+                </li>
+              ))}
+              {artist.songs.length > 4 && (
+                <li class="more-songs">
+                  и еще {artist.songs.length - 4} ...
+                </li>
+              )}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .welcome-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .welcome-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 32px;
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .welcome-title {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, var(--accent), var(--chord-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .welcome-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 20px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: var(--transition-smooth);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .stat-icon {
+    font-size: 2.2rem;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-val {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stat-lbl {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Directory list */
+  .directory-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .artists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .artist-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: var(--transition-smooth);
+  }
+
+  .artist-card:hover {
+    border-color: var(--border-color);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .artist-card-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .songs-count {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .artist-songs-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+  }
+
+  .artist-song-link {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: var(--transition-smooth);
+    display: block;
+  }
+
+  .artist-song-link:hover {
+    color: var(--accent);
+    padding-left: 4px;
+  }
+
+  .more-songs {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+</style>

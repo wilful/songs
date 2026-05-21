@@ -1,0 +1,17 @@
+{
+  "name": "songbook-website",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.8.0",
+    "chordsheetjs": "^15.2.0",
+    "fast-glob": "^3.3.2"
+  }
+}

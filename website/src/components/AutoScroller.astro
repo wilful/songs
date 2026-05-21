@@ -1,0 +1,190 @@
+---
+---
+
+<div class="autoscroller-widget">
+  <span class="widget-label">Автоскролл:</span>
+  <div class="controls-group">
+    <button class="btn-ctrl" id="scroll-toggle" aria-label="Play/Pause scroller">▶</button>
+    <button class="btn-speed" id="scroll-speed-down" aria-label="Decrease scroll speed">◀</button>
+    <span class="speed-value" id="scroll-speed-val">1x</span>
+    <button class="btn-speed" id="scroll-speed-up" aria-label="Increase scroll speed">▶▶</button>
+  </div>
+</div>
+
+<style>
+  .autoscroller-widget {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    gap: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: var(--transition-smooth);
+    user-select: none;
+  }
+
+  .widget-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .controls-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    padding: 2px;
+    border-radius: 9999px;
+    gap: 2px;
+  }
+
+  .btn-ctrl {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-ctrl:hover {
+    background: var(--border-color);
+    color: var(--accent);
+  }
+
+  .btn-ctrl.active {
+    color: #ef4444; /* Red for pause */
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .btn-speed {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-speed:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .speed-value {
+    min-width: 32px;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+</style>
+
+<script>
+  let isScrolling = false;
+  let scrollSpeedIndex = 2; // Default 1x (index 2 in speeds list)
+  
+  // Speed multiplier list (pixels per frame at 60fps)
+  const speeds = [0.15, 0.3, 0.6, 1.2, 2.0, 3.5];
+  const speedLabels = ["0.25x", "0.5x", "1x", "2x", "3x", "5x"];
+
+  const toggleBtn = document.getElementById('scroll-toggle');
+  const speedDownBtn = document.getElementById('scroll-speed-down');
+  const speedUpBtn = document.getElementById('scroll-speed-up');
+  const speedDisplay = document.getElementById('scroll-speed-val');
+  const scrollContainer = document.getElementById('scroll-container');
+
+  let animationFrameId: number | null = null;
+  let lastScrollTop = 0;
+
+  function autoScrollLoop() {
+    if (!isScrolling || !scrollContainer) return;
+    
+    // Add exact speed increment
+    scrollContainer.scrollTop += speeds[scrollSpeedIndex];
+
+    // Stop auto scroll if user reached the absolute bottom
+    const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 1;
+    if (isAtBottom) {
+      stopScrolling();
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(autoScrollLoop);
+  }
+
+  function startScrolling() {
+    if (isScrolling) return;
+    isScrolling = true;
+    
+    if (toggleBtn) {
+      toggleBtn.textContent = '⏸';
+      toggleBtn.classList.add('active');
+    }
+    
+    autoScrollLoop();
+  }
+
+  function stopScrolling() {
+    if (!isScrolling) return;
+    isScrolling = false;
+    
+    if (toggleBtn) {
+      toggleBtn.textContent = '▶';
+      toggleBtn.classList.remove('active');
+    }
+    
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    if (isScrolling) {
+      stopScrolling();
+    } else {
+      startScrolling();
+    }
+  });
+
+  speedDownBtn?.addEventListener('click', () => {
+    if (scrollSpeedIndex > 0) {
+      scrollSpeedIndex--;
+      if (speedDisplay) {
+        speedDisplay.textContent = speedLabels[scrollSpeedIndex];
+      }
+    }
+  });
+
+  speedUpBtn?.addEventListener('click', () => {
+    if (scrollSpeedIndex < speeds.length - 1) {
+      scrollSpeedIndex++;
+      if (speedDisplay) {
+        speedDisplay.textContent = speedLabels[scrollSpeedIndex];
+      }
+    }
+  });
+
+  // Stop scrolling on manual scroll interaction
+  scrollContainer?.addEventListener('mousedown', stopScrolling);
+  scrollContainer?.addEventListener('wheel', stopScrolling);
+  scrollContainer?.addEventListener('touchstart', stopScrolling);
+</script>
