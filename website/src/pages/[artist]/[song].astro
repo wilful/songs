@@ -220,7 +220,20 @@ const { song } = Astro.props;
     }
 
     .song-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
       padding-bottom: 16px;
+    }
+
+    .header-main {
+      width: 100%;
+    }
+
+    .song-badges {
+      width: 100%;
+      justify-content: flex-start;
+      flex-wrap: wrap;
     }
     
     .lyrics {

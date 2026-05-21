@@ -265,16 +265,22 @@ sortedArtists.forEach(artist => {
       }
 
       .top-navbar {
-        height: 70px;
-        padding: 0 32px;
+        height: 56px;
+        padding: 0 16px;
         border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: var(--glass-bg);
+        background: var(--bg-sidebar);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         z-index: 90;
+      }
+
+      @media (min-width: 769px) {
+        .top-navbar {
+          display: none;
+        }
       }
 
       .menu-toggle {
@@ -284,33 +290,67 @@ sortedArtists.forEach(artist => {
         color: var(--text-primary);
         font-size: 1.5rem;
         cursor: pointer;
+        padding: 4px;
+        line-height: 1;
+      }
+
+      .navbar-title {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        background: linear-gradient(135deg, var(--accent), var(--chord-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .navbar-spacer {
+        width: 32px;
+      }
+
+      .sidebar-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
       .theme-toggles {
         display: flex;
         background: var(--bg-card);
         border: 1px solid var(--border-color);
-        padding: 4px;
+        padding: 3px;
         border-radius: 9999px;
-        gap: 2px;
+        gap: 4px;
+        width: 100%;
       }
 
       .theme-btn {
         background: none;
         border: none;
-        padding: 6px 14px;
+        flex: 1;
+        padding: 6px 0;
         border-radius: 9999px;
         cursor: pointer;
         font-size: 0.8rem;
         font-weight: 500;
         color: var(--text-secondary);
         transition: var(--transition-smooth);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
       }
 
       .theme-btn.active {
         background: var(--bg-main);
         color: var(--text-primary);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       }
 
       .scroll-container {
@@ -391,6 +431,21 @@ sortedArtists.forEach(artist => {
             Песни не найдены
           </div>
         </nav>
+        
+        <!-- Theme Controls in Sidebar Footer -->
+        <div class="sidebar-footer">
+          <div class="theme-toggles">
+            <button class="theme-btn" data-theme-target="light" title="Светлая тема">
+              ☀️ <span>Светлая</span>
+            </button>
+            <button class="theme-btn" data-theme-target="dark" title="Темная тема">
+              🌙 <span>Темная</span>
+            </button>
+            <button class="theme-btn" data-theme-target="sepia" title="Теплый режим сцены">
+              📜 <span>Сцена</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       <!-- Main Layout Panel -->
@@ -398,16 +453,11 @@ sortedArtists.forEach(artist => {
         <header class="top-navbar">
           <button class="menu-toggle" id="open-sidebar" aria-label="Open menu">☰</button>
           
-          <div class="navbar-title" style="font-family: var(--font-heading); font-weight: 600;">
-            {title}
+          <div class="navbar-title">
+            🎶 Songbook
           </div>
-
-          <!-- Theme controls -->
-          <div class="theme-toggles">
-            <button class="theme-btn" data-theme-target="light">Светлая</button>
-            <button class="theme-btn" data-theme-target="dark">Темная</button>
-            <button class="theme-btn" data-theme-target="sepia">Сцена</button>
-          </div>
+          
+          <div class="navbar-spacer"></div>
         </header>
 
         <div class="scroll-container" id="scroll-container">
