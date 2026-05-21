@@ -59,7 +59,12 @@ const { song } = Astro.props;
     <!-- Embedded Video Player if present -->
     {song.videoUrl && (
       <div class="video-container">
-        <h3 class="video-title">📺 Видео-разбор / Клип</h3>
+        <div class="video-header">
+          <h3 class="video-title">📺 Видео-разбор / Клип</h3>
+          <a href={song.videoUrl} target="_blank" rel="noopener noreferrer" class="video-external-btn">
+            Смотреть на YouTube ↗
+          </a>
+        </div>
         <div class="video-wrapper">
           {song.videoUrl.includes('youtube.com') || song.videoUrl.includes('youtu.be') ? (
             (() => {
@@ -78,17 +83,13 @@ const { song } = Astro.props;
                 ></iframe>
               ) : (
                 <div class="video-link-fallback-wrapper">
-                  <a href={song.videoUrl} target="_blank" rel="noopener noreferrer" class="video-link-fallback">
-                    Смотреть видео на YouTube ↗
-                  </a>
+                  <span class="video-error-text">Не удалось загрузить плеер</span>
                 </div>
               );
             })()
           ) : (
             <div class="video-link-fallback-wrapper">
-              <a href={song.videoUrl} target="_blank" rel="noopener noreferrer" class="video-link-fallback">
-                Смотреть внешнее видео ↗
-              </a>
+              <span class="video-error-text">Внешнее видео</span>
             </div>
           )}
         </div>
@@ -301,7 +302,15 @@ const { song } = Astro.props;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+  }
+
+  .video-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .video-title {
@@ -309,6 +318,26 @@ const { song } = Astro.props;
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--text-primary);
+  }
+
+  .video-external-btn {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent);
+    color: #1D2021 !important; /* Keep highly visible in both dark/light modes */
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+
+  .video-external-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+    filter: brightness(1.1);
   }
 
   .video-wrapper {
@@ -337,20 +366,9 @@ const { song } = Astro.props;
     background: rgba(0, 0, 0, 0.2);
   }
 
-  .video-link-fallback {
-    display: inline-flex;
-    align-items: center;
-    background: var(--accent);
-    color: #1D2021 !important; /* Keep text highly readable on accent background */
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: var(--transition-smooth);
-  }
-
-  .video-link-fallback:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--accent-glow);
+  .video-error-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
   }
 </style>
