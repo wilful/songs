@@ -114,6 +114,12 @@ export function getAllSongs() {
     const key = songData.key || '';
     const tempo = songData.tempo || '';
 
+    // Extract video url if present (supports standard {meta: video ...}, {video: ...}, or {meta: youtube ...})
+    const videoMatch = rawContent.match(/\{meta:\s*video\s+([^\}]+)\}/i) || 
+                       rawContent.match(/\{video:\s*([^\}]+)\}/i) ||
+                       rawContent.match(/\{meta:\s*youtube\s+([^\}]+)\}/i);
+    const videoUrl = videoMatch ? videoMatch[1].trim() : '';
+
     // Create slugs
     const artistSlug = slugify(artist);
     const songSlug = slugify(title);
@@ -126,6 +132,7 @@ export function getAllSongs() {
       artist,
       key,
       tempo,
+      videoUrl,
       artistSlug,
       songSlug,
       rawContent,
