@@ -212,15 +212,31 @@ const { song } = Astro.props;
   /* Target adjustments on smaller screens */
   @media (max-width: 600px) {
     .song-title {
-      font-size: 2rem;
+      font-size: 1.8rem;
+    }
+    
+    .song-author {
+      font-size: 1.05rem;
+    }
+
+    .song-header {
+      padding-bottom: 16px;
     }
     
     .lyrics {
-      font-size: 1rem;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
     }
 
     .chord {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
+      margin-bottom: 3px;
+    }
+
+    .song-toolbar {
+      gap: 8px;
+      padding: 8px 0;
+      justify-content: space-between;
     }
   }
 </style>
