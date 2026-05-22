@@ -185,9 +185,14 @@ const { song } = Astro.props;
 
   @media (min-width: 768px) {
     .song-body {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px 40px;
+      display: block;
+      column-count: 2;
+      column-gap: 40px;
+    }
+
+    .song-body .song-paragraph {
+      break-inside: avoid;
+      margin-bottom: 24px;
     }
   }
 

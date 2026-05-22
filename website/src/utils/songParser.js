@@ -41,6 +41,12 @@ function renderSongToHtml(song) {
   let html = '<div class="song-body">';
   
   song.paragraphs.forEach(paragraph => {
+    // Check if the paragraph has at least one line with actual content (lyrics, chords, or comment)
+    const hasContent = paragraph.lines.some(line => 
+      line.type === 'comment' || line.items.some(item => !!item.chord || !!item.lyrics)
+    );
+    if (!hasContent) return;
+
     html += '<div class="song-paragraph">';
     
     paragraph.lines.forEach(line => {
