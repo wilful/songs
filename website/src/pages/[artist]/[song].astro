@@ -180,20 +180,28 @@ const { song } = Astro.props;
   .song-body {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .song-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px 40px;
+    }
   }
 
   .song-paragraph {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
   }
 
   .song-line {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    line-height: 2.2; /* Extra height to accommodate chords above */
+    line-height: 1.9; /* Extra height to accommodate chords above */
   }
 
   /* Special line type for guitar tabs */
@@ -224,7 +232,7 @@ const { song } = Astro.props;
     padding: 1px 4px;
     border-radius: 4px;
     line-height: 1.1;
-    margin-bottom: 5px; /* Spacing between chord and text */
+    margin-bottom: 2px; /* Spacing between chord and text */
     width: fit-content;
     user-select: none; /* Keep chord separate from lyrics selection */
     cursor: pointer;
