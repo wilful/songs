@@ -5,14 +5,11 @@ songbook_name := "songbook.pdf"
 # Собрать все PDF и книгу песен по умолчанию
 all: pdfs songbook
 
-# Сгенерировать индивидуальные PDF-страницы для каждой песни
+# Сгенерировать индивидуальные PDF-страницы для каждой песни в параллельном режиме (используя все ядра процессора)
 pdfs:
-    @echo "Generating individual PDFs..."
-    @find . -maxdepth 2 -type f -name '*.cho' ! -name 'default.cho' | while read -r song; do \
-        pdf="${song%.cho}.pdf"; \
-        echo "Generating $pdf"; \
-        chordpro --config={{config}} --output="$pdf" "$song"; \
-    done
+    @echo "Generating individual PDFs in parallel..."
+    @find . -maxdepth 2 -type f -name '*.cho' ! -name 'default.cho' -print0 | xargs -0 -P $(sysctl -n hw.ncpu) -I {} sh -c 'song="{}"; echo "Generating ${song%.cho}.pdf"; chordpro --config={{config}} --output="${song%.cho}.pdf" "$song"'
+
 
 # Собрать общую книгу песен в один PDF-документ
 songbook:
