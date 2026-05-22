@@ -120,6 +120,11 @@ export function getAllSongs() {
                        rawContent.match(/\{meta:\s*youtube\s+([^\}]+)\}/i);
     const videoUrl = videoMatch ? videoMatch[1].trim() : '';
 
+    // Extract capo if present (supports standard {capo: ...} or {meta: capo ...})
+    const capoMatch = rawContent.match(/\{capo:\s*([^\}]+)\}/i) || 
+                      rawContent.match(/\{meta:\s*capo\s+([^\}]+)\}/i);
+    const capo = capoMatch ? capoMatch[1].trim() : '';
+
     // Create slugs
     const artistSlug = slugify(artist);
     const songSlug = slugify(title);
@@ -132,6 +137,7 @@ export function getAllSongs() {
       artist,
       key,
       tempo,
+      capo,
       videoUrl,
       artistSlug,
       songSlug,

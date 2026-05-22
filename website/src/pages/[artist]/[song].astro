@@ -42,6 +42,12 @@ const { song } = Astro.props;
             <span class="badge-text">{song.tempo} bpm</span>
           </div>
         )}
+        {song.capo && (
+          <div class="song-badge" title="Каподастр (лад)">
+            <span class="badge-icon">🎸</span>
+            <span class="badge-text">Капо: {song.capo} лад</span>
+          </div>
+        )}
       </div>
     </header>
 
