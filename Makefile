@@ -3,10 +3,10 @@ SONGS := $(shell find . -maxdepth 2 -type f -name '*.cho' ! -name 'default.cho' 
 PDFS := $(SONGS:.cho=.pdf)
 SONGBOOK := songbook.pdf
 
-.PHONY: all clean pdfs dev site
+.PHONY: all clean pdfs dev site songbook
 
-# Build both individual PDFs and the combined songbook by default
-all: pdfs $(SONGBOOK)
+# By default, build the static website
+all: site
 
 pdfs: $(PDFS)
 
@@ -16,6 +16,8 @@ pdfs: $(PDFS)
 		--config=$(CONFIG) \
 		--output="$@" \
 		"$<"
+
+songbook: $(SONGBOOK)
 
 $(SONGBOOK): $(SONGS) $(CONFIG)
 	@echo "Generating $(SONGBOOK)"
