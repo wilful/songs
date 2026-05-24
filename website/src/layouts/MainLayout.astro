@@ -558,6 +558,26 @@ sortedArtists.forEach(artist => {
           }
         });
       }
+
+      // Preserve sidebar scroll position
+      const songListContainer = document.querySelector('.song-list-container');
+      const activeSong = document.querySelector('.song-item.active') as HTMLElement;
+
+      if (songListContainer) {
+        // Restore scroll position
+        const savedScrollTop = sessionStorage.getItem('sidebar-scroll-top');
+        if (savedScrollTop !== null) {
+          songListContainer.scrollTop = parseInt(savedScrollTop, 10);
+        } else if (activeSong) {
+          // If no saved position (e.g. first visit), scroll the active song into view
+          activeSong.scrollIntoView({ block: 'nearest' });
+        }
+
+        // Save scroll position when scrolling
+        songListContainer.addEventListener('scroll', () => {
+          sessionStorage.setItem('sidebar-scroll-top', songListContainer.scrollTop.toString());
+        });
+      }
     </script>
   </body>
 </html>
