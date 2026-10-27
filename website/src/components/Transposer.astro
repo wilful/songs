@@ -15,21 +15,20 @@
   .transposer-widget {
     display: inline-flex;
     align-items: center;
+    flex: none;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 6px 14px;
-    border-radius: 9999px;
-    gap: 12px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: var(--transition-smooth);
+    padding: 4px 8px;
+    border-radius: 999px;
+    gap: 6px;
     user-select: none;
   }
 
   .widget-label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-secondary);
+    white-space: nowrap;
   }
 
   .controls-group {
@@ -38,82 +37,84 @@
     background: var(--bg-main);
     border: 1px solid var(--border-color);
     padding: 2px;
-    border-radius: 9999px;
+    border-radius: 999px;
     gap: 2px;
+  }
+
+  .btn-transpose,
+  .btn-reset {
+    touch-action: manipulation; /* no double-tap zoom while playing */
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .btn-transpose {
     background: none;
     border: none;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     color: var(--text-primary);
     cursor: pointer;
     font-family: var(--font-sans);
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition-smooth);
   }
 
-  .btn-transpose:hover {
+  .btn-transpose:active {
     background: var(--border-color);
     color: var(--accent);
   }
 
   .transpose-value {
-    min-width: 24px;
+    min-width: 30px;
     text-align: center;
     font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
     color: var(--accent);
   }
 
   .btn-reset {
     background: none;
     border: none;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 999px;
     font-family: var(--font-sans);
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: var(--transition-smooth);
   }
 
-  .btn-reset:hover {
+  .btn-reset:active {
     color: var(--text-primary);
     background: var(--border-color);
   }
 
-  @media (max-width: 600px) {
+  @media (min-width: 900px) {
     .transposer-widget {
-      padding: 4px 10px;
-      gap: 6px;
+      padding: 6px 14px;
+      gap: 12px;
     }
+
     .widget-label {
-      font-size: 0.72rem;
+      font-size: 0.85rem;
     }
-    .controls-group {
-      padding: 1px;
-    }
+
     .btn-transpose {
-      width: 24px;
-      height: 24px;
-      font-size: 0.75rem;
+      width: 32px;
+      height: 32px;
+      font-size: 0.85rem;
     }
-    .transpose-value {
-      min-width: 18px;
-      font-size: 0.75rem;
-    }
+
     .btn-reset {
-      font-size: 0.72rem;
-      padding: 2px 6px;
+      min-height: 0;
+      padding: 4px 8px;
     }
   }
 </style>

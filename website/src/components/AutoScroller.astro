@@ -15,21 +15,20 @@
   .autoscroller-widget {
     display: inline-flex;
     align-items: center;
+    flex: none;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 6px 14px;
-    border-radius: 9999px;
-    gap: 12px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: var(--transition-smooth);
+    padding: 4px 8px;
+    border-radius: 999px;
+    gap: 6px;
     user-select: none;
   }
 
   .widget-label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-secondary);
+    white-space: nowrap;
   }
 
   .controls-group {
@@ -38,57 +37,50 @@
     background: var(--bg-main);
     border: 1px solid var(--border-color);
     padding: 2px;
-    border-radius: 9999px;
+    border-radius: 999px;
     gap: 2px;
   }
 
-  .btn-ctrl {
+  .btn-ctrl,
+  .btn-speed {
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
     background: none;
     border: none;
-    width: 28px;
-    height: 28px;
     border-radius: 50%;
-    color: var(--text-primary);
     cursor: pointer;
-    font-size: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition-smooth);
+    color: var(--text-primary);
   }
 
-  .btn-ctrl:hover {
+  .btn-ctrl {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .btn-speed {
+    width: 40px;
+    height: 40px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .btn-ctrl:active,
+  .btn-speed:active {
     background: var(--border-color);
     color: var(--accent);
   }
 
   .btn-ctrl.active {
-    color: #ef4444; /* Red for pause */
-    background: rgba(239, 68, 68, 0.1);
-  }
-
-  .btn-speed {
-    background: none;
-    border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.7rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition-smooth);
-  }
-
-  .btn-speed:hover {
-    background: var(--border-color);
-    color: var(--text-primary);
+    color: #ef4444; /* red while scrolling */
   }
 
   .speed-value {
-    min-width: 32px;
+    min-width: 34px;
     text-align: center;
     font-family: var(--font-sans);
     font-size: 0.8rem;
@@ -96,25 +88,20 @@
     color: var(--text-secondary);
   }
 
-  @media (max-width: 600px) {
+  @media (min-width: 900px) {
     .autoscroller-widget {
-      padding: 4px 10px;
-      gap: 6px;
+      padding: 6px 14px;
+      gap: 12px;
     }
+
     .widget-label {
-      font-size: 0.72rem;
+      font-size: 0.85rem;
     }
-    .controls-group {
-      padding: 1px;
-    }
-    .btn-ctrl, .btn-speed {
-      width: 24px;
-      height: 24px;
-      font-size: 0.75rem;
-    }
-    .speed-value {
-      min-width: 24px;
-      font-size: 0.75rem;
+
+    .btn-ctrl,
+    .btn-speed {
+      width: 32px;
+      height: 32px;
     }
   }
 </style>
@@ -136,6 +123,36 @@
   let animationFrameId: number | null = null;
   let lastScrollTop = 0;
 
+  // Screen Wake Lock: keeps the display on during auto-scroll (best effort,
+  // silently ignored where the API is missing).
+  let wakeLock: WakeLockSentinel | null = null;
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (error) {
+      wakeLock = null;
+    }
+  }
+
+  async function releaseWakeLock() {
+    try {
+      await wakeLock?.release();
+    } catch (error) {
+      /* already released */
+    }
+    wakeLock = null;
+  }
+
+  // Wake locks are dropped when the page is hidden; take one back on return.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isScrolling && !wakeLock) {
+      void requestWakeLock();
+    }
+  });
+
   function autoScrollLoop() {
     if (!isScrolling || !scrollContainer) return;
     
@@ -155,7 +172,10 @@
   function startScrolling() {
     if (isScrolling) return;
     isScrolling = true;
-    
+
+    // Keep the phone screen awake while the sheet scrolls (best effort).
+    void requestWakeLock();
+
     if (toggleBtn) {
       toggleBtn.textContent = '⏸';
       toggleBtn.classList.add('active');
@@ -167,7 +187,9 @@
   function stopScrolling() {
     if (!isScrolling) return;
     isScrolling = false;
-    
+
+    void releaseWakeLock();
+
     if (toggleBtn) {
       toggleBtn.textContent = '▶';
       toggleBtn.classList.remove('active');
