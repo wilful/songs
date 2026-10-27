@@ -93,6 +93,15 @@ function sortKey(name: string) {
           ui-serif, serif;
         --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
+        /* Fluid type ramp: one scale instead of per-breakpoint font sizes. */
+        --step--1: clamp(0.76rem, 0.74rem + 0.08vw, 0.82rem);
+        --step-0: clamp(0.95rem, 0.93rem + 0.12vw, 1rem);
+        --step-1: clamp(1.05rem, 1.02rem + 0.2vw, 1.14rem);
+        --step-2: clamp(1.22rem, 1.12rem + 0.45vw, 1.45rem);
+        --step-3: clamp(1.75rem, 1.35rem + 1.75vw, 2.5rem);
+        --step-4: clamp(2.05rem, 1.5rem + 2.7vw, 3rem);
+
+        --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
         --transition-smooth: color 0.18s ease, background-color 0.18s ease,
           border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 
@@ -102,6 +111,10 @@ function sortKey(name: string) {
         --radius-sm: 10px;
         --radius: 14px;
         --radius-lg: 20px;
+        --radius-pill: 999px;
+
+        --ring: 0 0 0 3px var(--accent-glow);
+        --glass-blur: blur(14px) saturate(1.4);
       }
 
       /* --------------------------- Ink (dark) theme -------------------------- */
@@ -126,6 +139,12 @@ function sortKey(name: string) {
         --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.45), 0 18px 40px rgba(0, 0, 0, 0.4);
         --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
         --theme-color: #0f1113;
+        /* Hairline that reads as light catching the top edge of a surface. */
+        --border-highlight: rgba(236, 233, 227, 0.07);
+        /* Ambient background glow behind the app shell. */
+        --glow-1: rgba(232, 163, 61, 0.07);
+        --glow-2: rgba(122, 152, 194, 0.05);
+        color-scheme: dark;
       }
 
       /* --------------------------- Paper (light) theme ----------------------- */
@@ -150,6 +169,10 @@ function sortKey(name: string) {
         --shadow-md: 0 2px 6px rgba(24, 20, 14, 0.06), 0 16px 36px rgba(24, 20, 14, 0.07);
         --shadow-lg: 0 24px 60px rgba(24, 20, 14, 0.1);
         --theme-color: #f7f5f1;
+        --border-highlight: rgba(255, 255, 255, 0.9);
+        --glow-1: rgba(180, 83, 31, 0.07);
+        --glow-2: rgba(255, 255, 255, 0.6);
+        color-scheme: light;
       }
 
       /* ------------------------- Stage (sepia) theme ------------------------- */
@@ -174,6 +197,10 @@ function sortKey(name: string) {
         --shadow-md: 0 2px 6px rgba(48, 38, 20, 0.08), 0 16px 36px rgba(48, 38, 20, 0.1);
         --shadow-lg: 0 24px 60px rgba(48, 38, 20, 0.14);
         --theme-color: #f3ead4;
+        --border-highlight: rgba(255, 252, 240, 0.7);
+        --glow-1: rgba(154, 90, 16, 0.08);
+        --glow-2: rgba(255, 250, 232, 0.55);
+        color-scheme: light;
       }
 
       /* ================================ Base ================================= */
@@ -196,6 +223,11 @@ function sortKey(name: string) {
         font-size: 16px;
         line-height: 1.55;
         background-color: var(--bg-main);
+        /* Soft ambient light so the shell does not read as a flat rectangle */
+        background-image:
+          radial-gradient(900px 520px at 50% -12%, var(--glow-1), transparent 70%),
+          radial-gradient(720px 460px at 100% 0%, var(--glow-2), transparent 65%);
+        background-repeat: no-repeat;
         color: var(--text-primary);
         min-height: 100vh;
         overflow-x: hidden;
@@ -256,9 +288,10 @@ function sortKey(name: string) {
         min-height: calc(var(--appbar-height) + env(safe-area-inset-top));
         padding: env(safe-area-inset-top) 8px 0;
         background: var(--chrome-bg);
-        backdrop-filter: blur(14px) saturate(1.4);
-        -webkit-backdrop-filter: blur(14px) saturate(1.4);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 1px 0 var(--border-highlight) inset;
         position: relative;
         z-index: 20;
       }
@@ -496,6 +529,7 @@ function sortKey(name: string) {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
+        box-shadow: 0 1px 0 var(--border-highlight) inset;
         font-size: 16px; /* >=16px stops iOS from zooming the page on focus */
         color: var(--text-primary);
         outline: none;
@@ -510,7 +544,7 @@ function sortKey(name: string) {
 
       .search-input:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-glow);
+        box-shadow: var(--ring);
       }
 
       .song-list-container {
@@ -564,9 +598,11 @@ function sortKey(name: string) {
         color: var(--text-primary);
       }
 
+      /* Filled pill reads more clearly than a hairline on a long list */
       .song-item.active {
-        background: var(--accent-glow);
+        background: linear-gradient(90deg, var(--accent-glow), transparent 92%);
         border-left-color: var(--accent);
+        box-shadow: 0 1px 0 var(--border-highlight) inset;
         color: var(--text-primary);
         font-weight: 600;
       }
@@ -698,6 +734,10 @@ function sortKey(name: string) {
 
         .page-wrapper {
           max-width: none;
+        }
+
+        body {
+          background-image: none;
         }
 
         .sheet {

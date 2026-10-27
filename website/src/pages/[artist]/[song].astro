@@ -64,6 +64,8 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     <div class="song-toolbar">
       <Transposer />
       <AutoScroller />
+      <!-- Slides with the sheet: shows how much of the song is left -->
+      <span class="reading-progress" id="reading-progress" aria-hidden="true"></span>
     </div>
 
     <!-- Rendered Song Body -->
@@ -182,9 +184,9 @@ const base = import.meta.env.BASE_URL; // '/songs/'
 
   .song-title {
     font-family: var(--font-display);
-    font-size: 2rem;
+    font-size: var(--step-4);
     font-weight: 600;
-    line-height: 1.12;
+    line-height: 1.06;
     letter-spacing: -0.02em;
     color: var(--text-primary);
     overflow-wrap: anywhere;
@@ -199,13 +201,18 @@ const base = import.meta.env.BASE_URL; // '/songs/'
 
   .song-badge {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
-    padding: 7px 13px;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 14px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm), 0 1px 0 var(--border-highlight) inset;
+    transition: var(--transition-smooth);
+  }
+
+  .song-badge:hover {
+    border-color: var(--border-strong);
   }
 
   .song-badge dt {
@@ -233,7 +240,9 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     top: 0;
     margin: 0 -4px;
     padding: 10px 4px;
-    background: var(--bg-main);
+    background: var(--chrome-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 10;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -246,8 +255,22 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     left: 0;
     right: 0;
     bottom: 0;
-    height: 1px;
+    height: 2px;
     background: var(--border-color);
+  }
+
+  /* Reading progress: fills as the sheet scrolls under the sticky toolbar */
+  .reading-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--accent), var(--chord-color));
+    pointer-events: none;
+    z-index: 1;
   }
 
   .song-toolbar::-webkit-scrollbar {
@@ -256,10 +279,10 @@ const base = import.meta.env.BASE_URL; // '/songs/'
 
   /* --------------------------------- Sheet ------------------------------- */
   .sheet {
-    background: var(--bg-card);
+    background: linear-gradient(var(--bg-elevated), var(--bg-card));
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-md), 0 1px 0 var(--border-highlight) inset;
     padding: 20px 18px;
   }
 
@@ -330,7 +353,7 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   }
 
   .lyrics {
-    font-size: 1.06rem;
+    font-size: var(--step-1);
     color: var(--text-primary);
     white-space: pre-wrap; /* Keep exact spacing, but wrap instead of clipping */
     overflow-wrap: break-word;
@@ -481,7 +504,7 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     }
 
     .song-title {
-      font-size: 2.7rem;
+      font-size: var(--step-4);
     }
 
     .song-badges {
@@ -517,3 +540,22 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     }
   }
 </style>
+
+<script>
+  /* Reading progress for the sticky toolbar. The page itself never scrolls —
+     #scroll-container does — so the ratio comes from that element. */
+  const progressBar = document.getElementById('reading-progress');
+  const scroller = document.getElementById('scroll-container');
+
+  if (progressBar && scroller) {
+    const updateProgress = () => {
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      const ratio = max > 0 ? scroller.scrollTop / max : 0;
+      progressBar.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
+    };
+
+    updateProgress();
+    scroller.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+  }
+</script>

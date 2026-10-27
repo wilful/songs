@@ -32,9 +32,11 @@ sortedArtists.forEach(artist => {
     <header class="catalog-hero">
       <p class="eyebrow">Домашний песенник</p>
       <h1 class="catalog-title">Песни с аккордами</h1>
-      <p class="catalog-subtitle">
-        {totalSongs} песен · {totalArtists} исполнителей · чтение без интернета
-      </p>
+      <ul class="hero-stats">
+        <li class="stat"><strong>{totalSongs}</strong> песен</li>
+        <li class="stat"><strong>{totalArtists}</strong> исполнителей</li>
+        <li class="stat stat--accent">читается офлайн</li>
+      </ul>
     </header>
 
     <div class="search-row">
@@ -117,16 +119,46 @@ sortedArtists.forEach(artist => {
 
   .catalog-title {
     font-family: var(--font-display);
-    font-size: 2rem;
+    font-size: var(--step-4);
     font-weight: 600;
-    line-height: 1.1;
+    line-height: 1.06;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
 
-  .catalog-subtitle {
-    font-size: 0.85rem;
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    list-style: none;
+  }
+
+  .stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 5px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-card);
+    box-shadow: 0 1px 0 var(--border-highlight) inset;
     color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .stat strong {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-primary);
+  }
+
+  .stat--accent {
+    border-color: transparent;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
 
   /* Search stays reachable while scrolling the long list */
@@ -166,7 +198,7 @@ sortedArtists.forEach(artist => {
 
   .search-field .search-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    box-shadow: var(--ring);
   }
 
   .catalog-list {
@@ -176,13 +208,21 @@ sortedArtists.forEach(artist => {
   }
 
   .artist-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm), 0 1px 0 var(--border-highlight) inset;
     overflow: hidden;
+    transition: var(--transition-smooth);
+  }
+
+  .artist-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
   .artist-heading {
@@ -197,7 +237,7 @@ sortedArtists.forEach(artist => {
 
   .artist-name {
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: var(--step-2);
     font-weight: 600;
     letter-spacing: -0.01em;
   }
@@ -278,10 +318,6 @@ sortedArtists.forEach(artist => {
   }
 
   @media (min-width: 900px) {
-    .catalog-title {
-      font-size: 2.5rem;
-    }
-
     .catalog-hero {
       padding-top: 0;
     }
