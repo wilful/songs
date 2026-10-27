@@ -2,11 +2,19 @@
 ---
 
 <div class="transposer-widget">
-  <span class="widget-label">Тональность:</span>
+  <span class="widget-label">Тональность</span>
   <div class="controls-group">
-    <button class="btn-transpose" id="transpose-down" aria-label="Transpose down">-1</button>
+    <button class="btn-transpose" id="transpose-down" aria-label="Понизить на полтона">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12h12" />
+      </svg>
+    </button>
     <span class="transpose-value" id="transpose-val">0</span>
-    <button class="btn-transpose" id="transpose-up" aria-label="Transpose up">+1</button>
+    <button class="btn-transpose" id="transpose-up" aria-label="Повысить на полтона">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 6v12M6 12h12" />
+      </svg>
+    </button>
   </div>
   <button class="btn-reset" id="transpose-reset">Сброс</button>
 </div>
@@ -18,27 +26,30 @@
     flex: none;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 4px 8px;
+    padding: 5px 6px 5px 12px;
     border-radius: 999px;
-    gap: 6px;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
     user-select: none;
   }
 
   .widget-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
     white-space: nowrap;
   }
 
   .controls-group {
     display: flex;
     align-items: center;
+    gap: 2px;
     background: var(--bg-main);
     border: 1px solid var(--border-color);
     padding: 2px;
     border-radius: 999px;
-    gap: 2px;
   }
 
   .btn-transpose,
@@ -46,75 +57,77 @@
     touch-action: manipulation; /* no double-tap zoom while playing */
     -webkit-appearance: none;
     appearance: none;
+    cursor: pointer;
   }
 
   .btn-transpose {
     background: none;
     border: none;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-family: var(--font-sans);
-    font-size: 0.95rem;
-    font-weight: 700;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-transpose svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .btn-transpose:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
   }
 
   .btn-transpose:active {
-    background: var(--border-color);
     color: var(--accent);
+    transform: scale(0.94);
   }
 
   .transpose-value {
-    min-width: 30px;
+    min-width: 34px;
     text-align: center;
     font-family: var(--font-mono);
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--accent);
   }
 
   .btn-reset {
     background: none;
     border: none;
-    min-height: 40px;
+    min-height: 38px;
     padding: 0 10px;
     border-radius: 999px;
     font-family: var(--font-sans);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-muted);
-    cursor: pointer;
+    transition: var(--transition-smooth);
   }
 
-  .btn-reset:active {
+  .btn-reset:hover {
     color: var(--text-primary);
-    background: var(--border-color);
+    background: var(--bg-main);
   }
 
   @media (min-width: 900px) {
     .transposer-widget {
-      padding: 6px 14px;
+      padding: 5px 8px 5px 16px;
       gap: 12px;
-    }
-
-    .widget-label {
-      font-size: 0.85rem;
     }
 
     .btn-transpose {
       width: 32px;
       height: 32px;
-      font-size: 0.85rem;
-    }
-
-    .btn-reset {
-      min-height: 0;
-      padding: 4px 8px;
     }
   }
 </style>
