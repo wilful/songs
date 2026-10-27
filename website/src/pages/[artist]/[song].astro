@@ -23,36 +23,41 @@ const base = import.meta.env.BASE_URL; // '/songs/'
 >
   <article class="song-article">
     <!-- Quick way back to the list on a phone -->
-    <a class="back-link" href={base}>← Все песни</a>
+    <a class="back-link" href={base}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6" />
+      </svg>
+      Все песни
+    </a>
 
     <!-- Header info -->
     <header class="song-header">
       <div class="header-main">
+        <p class="song-eyebrow">{song.artist}</p>
         <h1 class="song-title">{song.title}</h1>
-        <div class="song-author">{song.artist}</div>
       </div>
-      
+
       <!-- Key & Tempo badges if present -->
-      <div class="song-badges">
+      <dl class="song-badges">
         {song.key && (
-          <div class="song-badge" title="Оригинальная тональность">
-            <span class="badge-icon">🔑</span>
-            <span class="badge-text">{song.key}</span>
+          <div class="song-badge">
+            <dt>Тональность</dt>
+            <dd>{song.key}</dd>
           </div>
         )}
         {song.tempo && (
-          <div class="song-badge" title="Темп (BPM)">
-            <span class="badge-icon">⏱</span>
-            <span class="badge-text">{song.tempo} bpm</span>
+          <div class="song-badge">
+            <dt>Темп</dt>
+            <dd>{song.tempo} bpm</dd>
           </div>
         )}
         {song.capo && (
-          <div class="song-badge" title="Каподастр (лад)">
-            <span class="badge-icon">🎸</span>
-            <span class="badge-text">Капо: {song.capo} лад</span>
+          <div class="song-badge">
+            <dt>Каподастр</dt>
+            <dd>{song.capo}</dd>
           </div>
         )}
-      </div>
+      </dl>
     </header>
 
     <!-- Toolbar controls -->
@@ -62,7 +67,7 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     </div>
 
     <!-- Rendered Song Body -->
-    <section class="song-content-wrapper">
+    <section class="sheet">
       <Fragment set:html={song.html} />
     </section>
 
@@ -71,11 +76,14 @@ const base = import.meta.env.BASE_URL; // '/songs/'
       <div class="video-container">
         <div class="video-header">
           <div class="video-heading">
-            <h3 class="video-title">📺 Видео-разбор / Клип</h3>
-            <span class="video-hint">для видео нужен интернет</span>
+            <h3 class="video-title">Видеоразбор и клип</h3>
+            <span class="video-hint">для просмотра нужен интернет</span>
           </div>
           <a href={song.videoUrl} target="_blank" rel="noopener noreferrer" class="video-external-btn">
-            Смотреть на YouTube ↗
+            Открыть на YouTube
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 16l8-8M10 8h6v6" />
+            </svg>
           </a>
         </div>
         <div class="video-wrapper">
@@ -117,7 +125,7 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   .song-article {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
     padding-bottom: 40px; /* Space at bottom for scrolling */
   }
 
@@ -125,46 +133,62 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     align-self: flex-start;
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
-    padding: 0 12px 0 0;
-    font-size: 0.9rem;
+    gap: 4px;
+    min-height: 36px;
+    font-size: 0.85rem;
     font-weight: 600;
+    letter-spacing: 0.01em;
     color: var(--text-muted);
+    transition: var(--transition-smooth);
   }
 
-  .back-link:active {
+  .back-link svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .back-link:hover {
     color: var(--accent);
+    gap: 7px;
   }
 
   .song-header {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
+    padding-bottom: 18px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 16px;
   }
 
   .header-main {
     width: 100%;
   }
 
+  .song-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
   .song-title {
-    font-family: var(--font-heading);
-    font-size: 1.75rem;
-    font-weight: 700;
-    line-height: 1.15;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.12;
     letter-spacing: -0.02em;
     color: var(--text-primary);
     overflow-wrap: anywhere;
-  }
-
-  .song-author {
-    font-family: var(--font-heading);
-    font-size: 1.05rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-top: 4px;
+    text-wrap: balance;
   }
 
   .song-badges {
@@ -174,15 +198,29 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   }
 
   .song-badge {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 13px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 6px 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .song-badge dt {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .song-badge dd {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
   }
 
   /* Toolbar styling — stays visible while the song scrolls */
@@ -193,21 +231,38 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     align-items: center;
     position: sticky;
     top: 0;
-    margin: 0 -2px;
-    padding: 8px 2px;
+    margin: 0 -4px;
+    padding: 10px 4px;
     background: var(--bg-main);
     z-index: 10;
-    border-bottom: 1px dashed var(--border-color);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+  }
+
+  .song-toolbar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--border-color);
   }
 
   .song-toolbar::-webkit-scrollbar {
     display: none;
   }
 
-  /* Song Content Parser Styles */
+  /* --------------------------------- Sheet ------------------------------- */
+  .sheet {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 20px 18px;
+  }
+
   .song-content-wrapper {
     font-family: var(--font-sans);
     line-height: 1.6;
@@ -217,19 +272,6 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     display: flex;
     flex-direction: column;
     gap: 20px;
-  }
-
-  @media (min-width: 900px) {
-    .song-body {
-      display: block;
-      column-count: 2;
-      column-gap: 40px;
-    }
-
-    .song-body .song-paragraph {
-      break-inside: avoid;
-      margin-bottom: 24px;
-    }
   }
 
   .song-paragraph {
@@ -242,20 +284,21 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    line-height: 1.9; /* Extra height to accommodate chords above */
+    line-height: 2; /* Extra height to accommodate chords above */
   }
 
   /* Special line type for guitar tabs */
   .song-line.tab-line {
     font-family: var(--font-mono);
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    background: var(--bg-card);
-    padding: 8px 12px;
-    border-radius: 6px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
     overflow-x: auto;
     white-space: pre;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .chord-lyrics-pair {
@@ -266,14 +309,15 @@ const base = import.meta.env.BASE_URL; // '/songs/'
 
   .chord {
     font-family: var(--font-mono);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--chord-color);
     background: var(--chord-bg);
-    padding: 1px 4px;
-    border-radius: 4px;
-    line-height: 1.1;
-    margin-bottom: 2px; /* Spacing between chord and text */
+    padding: 1px 5px;
+    border-radius: 5px;
+    line-height: 1.2;
+    margin-bottom: 3px;
     width: fit-content;
     user-select: none; /* Keep chord separate from lyrics selection */
     cursor: pointer;
@@ -281,82 +325,47 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   }
 
   .chord:hover {
-    background: rgba(236, 72, 153, 0.25);
+    background: var(--accent);
+    color: var(--accent-contrast);
   }
 
   .lyrics {
-    font-size: 1.05rem;
+    font-size: 1.06rem;
     color: var(--text-primary);
     white-space: pre-wrap; /* Keep exact spacing, but wrap instead of clipping */
     overflow-wrap: break-word;
   }
 
   .song-comment {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--accent);
-    margin-top: 16px;
-    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    margin-bottom: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-left: 3px solid var(--accent);
-    padding-left: 10px;
+    letter-spacing: 0.16em;
+    padding-left: 0;
   }
 
-  /* Target adjustments on smaller screens */
-  /* Roomy layout for tablets and desktops */
-  @media (min-width: 900px) {
-    .song-article {
-      gap: 32px;
-      padding-bottom: 80px;
-    }
-
-    .back-link {
-      display: none;
-    }
-
-    .song-header {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      padding-bottom: 24px;
-    }
-
-    .song-title {
-      font-size: 2.4rem;
-    }
-
-    .song-author {
-      font-size: 1.2rem;
-    }
-
-    .song-badge {
-      padding: 8px 14px;
-    }
-
-    .song-toolbar {
-      flex-wrap: wrap;
-      gap: 16px;
-      padding: 12px 0;
-      overflow: visible;
-    }
-
-    .video-container {
-      margin-top: 40px;
-      padding: 24px;
-      gap: 20px;
-    }
+  .song-comment::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
   }
 
   /* Video player styling */
   .video-container {
-    margin-top: 24px;
+    margin-top: 10px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 14px;
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -369,7 +378,7 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   }
 
   .video-hint {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     color: var(--text-muted);
   }
 
@@ -382,8 +391,8 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   }
 
   .video-title {
-    font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-primary);
   }
@@ -391,30 +400,42 @@ const base = import.meta.env.BASE_URL; // '/songs/'
   .video-external-btn {
     display: inline-flex;
     align-items: center;
-    min-height: var(--tap);
+    gap: 6px;
+    min-height: 42px;
     background: var(--accent);
-    color: #1D2021 !important; /* Keep highly visible in both dark/light modes */
+    color: var(--accent-contrast) !important; /* Keep highly visible in both dark/light modes */
     padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
     font-weight: 600;
     text-decoration: none;
     transition: var(--transition-smooth);
-    box-shadow: 0 2px 8px var(--accent-glow);
+    box-shadow: 0 2px 10px var(--accent-glow);
+  }
+
+  .video-external-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .video-external-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px var(--accent-glow);
-    filter: brightness(1.1);
+    filter: brightness(1.08);
+    box-shadow: 0 6px 18px var(--accent-glow);
   }
 
   .video-wrapper {
     position: relative;
     width: 100%;
-    border-radius: 8px;
+    border-radius: var(--radius);
     overflow: hidden;
     aspect-ratio: 16 / 9;
+    background: var(--bg-sunken);
   }
 
   .video-iframe {
@@ -432,12 +453,67 @@ const base = import.meta.env.BASE_URL; // '/songs/'
     justify-content: center;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.2);
   }
 
   .video-error-text {
     color: var(--text-secondary);
     font-size: 0.95rem;
     font-weight: 500;
+  }
+
+  /* Roomy layout for tablets and desktops */
+  @media (min-width: 900px) {
+    .song-article {
+      gap: 30px;
+      padding-bottom: 80px;
+    }
+
+    .back-link {
+      display: none;
+    }
+
+    .song-header {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      padding-bottom: 24px;
+    }
+
+    .song-title {
+      font-size: 2.7rem;
+    }
+
+    .song-badges {
+      justify-content: flex-end;
+      padding-bottom: 6px;
+    }
+
+    .song-toolbar {
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 14px 0;
+      overflow: visible;
+    }
+
+    .sheet {
+      padding: 44px 48px;
+    }
+
+    .song-body {
+      column-count: 2;
+      column-gap: 48px;
+    }
+
+    .song-body .song-paragraph {
+      break-inside: avoid;
+      margin-bottom: 26px;
+    }
+
+    .video-container {
+      margin-top: 24px;
+      padding: 22px;
+      gap: 18px;
+    }
   }
 </style>

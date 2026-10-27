@@ -29,30 +29,38 @@ sortedArtists.forEach(artist => {
 
 <MainLayout title="Все песни">
   <div class="catalog">
-    <div class="catalog-intro">
-      <h1 class="catalog-title">Песенник</h1>
+    <header class="catalog-hero">
+      <p class="eyebrow">Домашний песенник</p>
+      <h1 class="catalog-title">Песни с аккордами</h1>
       <p class="catalog-subtitle">
-        {totalSongs} песен · {totalArtists} исполнителей · работает без интернета
+        {totalSongs} песен · {totalArtists} исполнителей · чтение без интернета
       </p>
-    </div>
+    </header>
 
     <div class="search-row">
-      <input
-        type="search"
-        id="catalog-search"
-        class="search-input"
-        placeholder="Поиск: песня или исполнитель"
-        data-search-target="#catalog-list"
-        autocomplete="off"
-        enterkeyhint="search"
-      />
+      <label class="search-field">
+        <span class="visually-hidden">Поиск по песням и исполнителям</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="6" />
+          <path d="M20 20l-4.2-4.2" />
+        </svg>
+        <input
+          type="search"
+          id="catalog-search"
+          class="search-input"
+          placeholder="Песня или исполнитель"
+          data-search-target="#catalog-list"
+          autocomplete="off"
+          enterkeyhint="search"
+        />
+      </label>
     </div>
 
     <div id="catalog-list" class="catalog-list">
       {sortedArtists.map(artist => (
-        <section class="artist-section" data-search-group>
+        <section class="artist-card" data-search-group>
           <h2 class="artist-heading">
-            <span>{artist.name}</span>
+            <span class="artist-name">{artist.name}</span>
             <span class="artist-count">{artist.songs.length}</span>
           </h2>
           <ul class="song-rows">
@@ -67,7 +75,9 @@ sortedArtists.forEach(artist => {
                   <span class="song-row-title">{song.title}</span>
                   <span class="song-row-meta">
                     {song.key && <span class="chip">{song.key}</span>}
-                    <span class="chevron" aria-hidden="true">›</span>
+                    <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M9 6l6 6-6 6" />
+                    </svg>
                   </span>
                 </a>
               </li>
@@ -75,7 +85,9 @@ sortedArtists.forEach(artist => {
           </ul>
         </section>
       ))}
-      <div class="empty-state" data-search-empty hidden>Песни не найдены</div>
+      <div class="empty-state" data-search-empty hidden>
+        Ничего не нашлось. Попробуйте другое слово.
+      </div>
     </div>
   </div>
 </MainLayout>
@@ -84,20 +96,32 @@ sortedArtists.forEach(artist => {
   .catalog {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
   }
 
-  .catalog-intro {
+  .catalog-hero {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    padding-top: 4px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
   }
 
   .catalog-title {
-    font-family: var(--font-heading);
-    font-size: 1.6rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.1;
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   .catalog-subtitle {
@@ -108,47 +132,95 @@ sortedArtists.forEach(artist => {
   /* Search stays reachable while scrolling the long list */
   .search-row {
     position: sticky;
-    top: -18px;
+    top: calc(var(--scroll-pad) * -1);
     z-index: 5;
-    padding: 10px 0;
-    background: var(--bg-main);
+    padding: 12px 0;
+    background: linear-gradient(var(--bg-main) 72%, transparent);
+  }
+
+  .search-field {
+    position: relative;
+    display: block;
+  }
+
+  .search-field svg {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    stroke: var(--text-muted);
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  .search-field .search-input {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .search-field .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
   }
 
   .catalog-list {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 20px;
   }
 
-  .artist-section {
+  .artist-card {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
 
   .artist-heading {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    font-family: var(--font-heading);
-    font-size: 1.05rem;
-    font-weight: 700;
+    gap: 10px;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(var(--bg-elevated), transparent);
+  }
+
+  .artist-name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
     letter-spacing: -0.01em;
-    padding: 0 2px;
   }
 
   .artist-count {
-    font-size: 0.75rem;
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--text-muted);
+    padding: 3px 9px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
   }
 
   .song-rows {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+  }
+
+  .song-rows li + li .song-row {
+    border-top: 1px solid var(--border-color);
   }
 
   .song-row {
@@ -157,15 +229,12 @@ sortedArtists.forEach(artist => {
     justify-content: space-between;
     gap: 12px;
     min-height: var(--tap);
-    padding: 11px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
+    padding: 12px 18px;
     transition: var(--transition-smooth);
   }
 
-  .song-row:active {
-    border-color: var(--accent);
+  .song-row:active,
+  .song-row:hover {
     background: var(--accent-glow);
   }
 
@@ -178,35 +247,56 @@ sortedArtists.forEach(artist => {
     flex: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .chip {
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
     background: var(--chord-bg);
     color: var(--chord-color);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
   }
 
-  .chevron {
-    color: var(--text-muted);
-    font-size: 1.2rem;
-    line-height: 1;
+  .arrow {
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: var(--transition-smooth);
+  }
+
+  .song-row:hover .arrow {
+    stroke: var(--accent);
+    transform: translateX(2px);
   }
 
   @media (min-width: 900px) {
     .catalog-title {
-      font-size: 2rem;
+      font-size: 2.5rem;
+    }
+
+    .catalog-hero {
+      padding-top: 0;
     }
 
     .catalog-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
-      align-items: start;
+      column-count: 2;
+      column-gap: 22px;
+      display: block;
+    }
+
+    .artist-card {
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 22px;
+      break-inside: avoid;
     }
   }
 </style>

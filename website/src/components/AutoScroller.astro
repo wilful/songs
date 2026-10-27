@@ -2,12 +2,27 @@
 ---
 
 <div class="autoscroller-widget">
-  <span class="widget-label">Автоскролл:</span>
+  <span class="widget-label">Автоскролл</span>
   <div class="controls-group">
-    <button class="btn-ctrl" id="scroll-toggle" aria-label="Play/Pause scroller">▶</button>
-    <button class="btn-speed" id="scroll-speed-down" aria-label="Decrease scroll speed">◀</button>
+    <button class="btn-ctrl" id="scroll-toggle" aria-label="Начать автопрокрутку">
+      <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5.5l10 6.5-10 6.5z" />
+      </svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 5v14M15 5v14" />
+      </svg>
+    </button>
+    <button class="btn-speed" id="scroll-speed-down" aria-label="Медленнее">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 12h12" />
+      </svg>
+    </button>
     <span class="speed-value" id="scroll-speed-val">1x</span>
-    <button class="btn-speed" id="scroll-speed-up" aria-label="Increase scroll speed">▶▶</button>
+    <button class="btn-speed" id="scroll-speed-up" aria-label="Быстрее">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 6v12M6 12h12" />
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -18,27 +33,30 @@
     flex: none;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 4px 8px;
+    padding: 5px 6px 5px 12px;
     border-radius: 999px;
-    gap: 6px;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
     user-select: none;
   }
 
   .widget-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
     white-space: nowrap;
   }
 
   .controls-group {
     display: flex;
     align-items: center;
+    gap: 2px;
     background: var(--bg-main);
     border: 1px solid var(--border-color);
     padding: 2px;
     border-radius: 999px;
-    gap: 2px;
   }
 
   .btn-ctrl,
@@ -53,36 +71,70 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-primary);
+    transition: var(--transition-smooth);
   }
 
   .btn-ctrl {
-    width: 40px;
-    height: 40px;
-    font-size: 0.9rem;
+    width: 38px;
+    height: 38px;
+    color: var(--text-primary);
+    background: var(--bg-card);
   }
 
   .btn-speed {
-    width: 40px;
-    height: 40px;
-    font-size: 0.75rem;
+    width: 38px;
+    height: 38px;
     color: var(--text-muted);
+  }
+
+  .btn-ctrl svg,
+  .btn-speed svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .btn-ctrl .icon-play {
+    margin-left: 1px;
+    fill: var(--text-primary);
+    stroke: none;
+  }
+
+  .btn-ctrl .icon-pause {
+    display: none;
+  }
+
+  /* While the sheet is scrolling the button turns into a pause control. */
+  .btn-ctrl.active {
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .btn-ctrl.active .icon-play {
+    display: none;
+  }
+
+  .btn-ctrl.active .icon-pause {
+    display: block;
+  }
+
+  .btn-speed:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
   }
 
   .btn-ctrl:active,
   .btn-speed:active {
-    background: var(--border-color);
-    color: var(--accent);
-  }
-
-  .btn-ctrl.active {
-    color: #ef4444; /* red while scrolling */
+    transform: scale(0.94);
   }
 
   .speed-value {
-    min-width: 34px;
+    min-width: 36px;
     text-align: center;
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-secondary);
@@ -90,12 +142,8 @@
 
   @media (min-width: 900px) {
     .autoscroller-widget {
-      padding: 6px 14px;
+      padding: 5px 8px 5px 16px;
       gap: 12px;
-    }
-
-    .widget-label {
-      font-size: 0.85rem;
     }
 
     .btn-ctrl,
@@ -177,8 +225,8 @@
     void requestWakeLock();
 
     if (toggleBtn) {
-      toggleBtn.textContent = '⏸';
       toggleBtn.classList.add('active');
+      toggleBtn.setAttribute('aria-label', 'Остановить автопрокрутку');
     }
     
     autoScrollLoop();
@@ -191,8 +239,8 @@
     void releaseWakeLock();
 
     if (toggleBtn) {
-      toggleBtn.textContent = '▶';
       toggleBtn.classList.remove('active');
+      toggleBtn.setAttribute('aria-label', 'Начать автопрокрутку');
     }
     
     if (animationFrameId !== null) {
