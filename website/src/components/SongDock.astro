@@ -39,7 +39,8 @@ const { slug = '' } = Astro.props;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+    padding: 8px max(10px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
     background: var(--bg);
     border-top: 1px solid var(--line);
   }
@@ -165,6 +166,37 @@ const { slug = '' } = Astro.props;
       gap: 14px;
       padding: 10px 40px calc(10px + env(safe-area-inset-bottom));
       border-top: 1px solid var(--line);
+    }
+  }
+
+  /* Узкие телефоны (320–380 px): сжимаем кнопки, чтобы док не обрезался. */
+  @media (max-width: 380px) {
+    .dock {
+      gap: 4px;
+      padding-left: max(6px, env(safe-area-inset-left));
+      padding-right: max(6px, env(safe-area-inset-right));
+    }
+
+    .tgroup {
+      padding: 2px;
+    }
+
+    .tbtn {
+      width: 38px;
+    }
+
+    .tbtn.small {
+      width: 40px;
+    }
+
+    .tvalue {
+      min-width: 30px;
+      padding: 0 2px;
+    }
+
+    .play {
+      width: 50px;
+      height: 50px;
     }
   }
 </style>
