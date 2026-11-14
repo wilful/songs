@@ -5,38 +5,44 @@ import { getAllSongs } from '../utils/songParser.js';
 const base = import.meta.env.BASE_URL; // '/songs/'
 
 const songs = getAllSongs();
-const totalSongs = songs.length;
-const totalArtists = new Set(songs.map(s => s.artist)).size;
 
-// Group songs by artist for the catalog
-const groupedSongs = songs.reduce((acc, song) => {
-  if (!acc[song.artist]) {
-    acc[song.artist] = {
-      name: song.artist,
-      slug: song.artistSlug,
-      songs: []
-    };
-  }
-  acc[song.artist].songs.push(song);
-  return acc;
-}, {} as Record<string, { name: string; slug: string; songs: typeof songs }>);
+const KEY_ORDER = ['C', 'G', 'D', 'A', 'E', 'F', 'B', 'Am', 'Em', 'Dm', 'F#m', 'Bm', 'Gm', 'Cm'];
 
-const sortedArtists = Object.values(groupedSongs).sort((a, b) => a.name.localeCompare(b.name));
-sortedArtists.forEach(artist => {
-  artist.songs.sort((a, b) => a.title.localeCompare(b.title));
-});
+function keyRank(key: string) {
+  const index = KEY_ORDER.indexOf(key);
+  return index === -1 ? KEY_ORDER.length : index;
+}
+
+const byArtist = new Map<string, typeof songs>();
+for (const song of songs) {
+  if (!byArtist.has(song.artist)) byArtist.set(song.artist, []);
+  byArtist.get(song.artist)!.push(song);
+}
+const artists = Array.from(byArtist.entries())
+  .map(([name, list]) => ({
+    name,
+    songs: list.sort((a, b) => a.title.localeCompare(b.title))
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const byKey = new Map<string, typeof songs>();
+for (const song of songs) {
+  const key = song.key || '—';
+  if (!byKey.has(key)) byKey.set(key, []);
+  byKey.get(key)!.push(song);
+}
+const keys = Array.from(byKey.entries())
+  .map(([name, list]) => ({
+    name,
+    songs: list.sort((a, b) => a.artist.localeCompare(b.artist) || a.title.localeCompare(b.title))
+  }))
+  .sort((a, b) => keyRank(a.name) - keyRank(b.name) || a.name.localeCompare(b.name));
+
+const chipKeys = keys.filter(item => item.name !== '—').map(item => item.name);
 ---
 
 <MainLayout title="Все песни">
-  <div class="catalog">
-    <header class="catalog-hero">
-      <p class="eyebrow">Домашний песенник</p>
-      <h1 class="catalog-title">Песни с аккордами</h1>
-      <p class="catalog-subtitle">
-        {totalSongs} песен · {totalArtists} исполнителей · чтение без интернета
-      </p>
-    </header>
-
+  <div class="home">
     <div class="search-row">
       <label class="search-field">
         <span class="visually-hidden">Поиск по песням и исполнителям</span>
@@ -48,94 +54,121 @@ sortedArtists.forEach(artist => {
           type="search"
           id="catalog-search"
           class="search-input"
-          placeholder="Песня или исполнитель"
-          data-search-target="#catalog-list"
+          placeholder="Песня, исполнитель или тональность"
           autocomplete="off"
           enterkeyhint="search"
         />
       </label>
     </div>
 
-    <div id="catalog-list" class="catalog-list">
-      {sortedArtists.map(artist => (
-        <section class="artist-card" data-search-group>
-          <h2 class="artist-heading">
-            <span class="artist-name">{artist.name}</span>
-            <span class="artist-count">{artist.songs.length}</span>
-          </h2>
-          <ul class="song-rows">
+    <div class="switch" role="group" aria-label="Список песен">
+      <button class="switch-btn active" data-view="artist">По исполнителю</button>
+      <button class="switch-btn" data-view="key">По тональности</button>
+    </div>
+
+    <div class="chips" id="key-chips">
+      {chipKeys.map(key => (
+        <button class="chip" data-key={key}>{key}</button>
+      ))}
+    </div>
+
+    <section class="block" id="recent-block" hidden>
+      <h2 class="block-label">Недавние</h2>
+      <ul class="rows" id="recent-rows"></ul>
+    </section>
+
+    <section class="block" id="fav-block" hidden>
+      <h2 class="block-label">Избранное</h2>
+      <ul class="rows" id="fav-rows"></ul>
+    </section>
+
+    <div class="view" id="view-artist">
+      {artists.map(artist => (
+        <section class="group" data-search-group>
+          <h2 class="group-label">{artist.name}</h2>
+          <ul class="rows">
             {artist.songs.map(song => (
-              <li>
-                <a
-                  class="song-row"
-                  href={`${base}${song.artistSlug}/${song.songSlug}/`}
-                  data-search-item
-                  data-search-text={`${song.title} ${artist.name}`.toLowerCase()}
-                >
-                  <span class="song-row-title">{song.title}</span>
-                  <span class="song-row-meta">
-                    {song.key && <span class="chip">{song.key}</span>}
-                    <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M9 6l6 6-6 6" />
-                    </svg>
-                  </span>
+              <li
+                class="row"
+                data-search-item
+                data-search-text={`${song.title} ${song.artist} ${song.key}`.toLowerCase()}
+                data-key={song.key}
+                data-slug={`${song.artistSlug}/${song.songSlug}`}
+              >
+                <a class="row-link" href={`${base}${song.artistSlug}/${song.songSlug}/`}>
+                  <span class="row-title">{song.title}</span>
+                  <span class="row-artist">{song.artist}</span>
                 </a>
+                {song.key && <span class="row-key">{song.key}</span>}
+                <button
+                  class="fav"
+                  data-fav={`${song.artistSlug}/${song.songSlug}`}
+                  aria-label="В избранное"
+                  aria-pressed="false"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4.2l2.4 5 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z"></path>
+                  </svg>
+                </button>
               </li>
             ))}
           </ul>
         </section>
       ))}
-      <div class="empty-state" data-search-empty hidden>
-        Ничего не нашлось. Попробуйте другое слово.
-      </div>
     </div>
+
+    <div class="view" id="view-key" hidden>
+      {keys.map(group => (
+        <section class="group" data-search-group>
+          <h2 class="group-label">{group.name === '—' ? 'Без тональности' : group.name}</h2>
+          <ul class="rows">
+            {group.songs.map(song => (
+              <li
+                class="row"
+                data-search-item
+                data-search-text={`${song.title} ${song.artist} ${song.key}`.toLowerCase()}
+                data-key={song.key}
+                data-slug={`${song.artistSlug}/${song.songSlug}`}
+              >
+                <a class="row-link" href={`${base}${song.artistSlug}/${song.songSlug}/`}>
+                  <span class="row-title">{song.title}</span>
+                  <span class="row-artist">{song.artist}</span>
+                </a>
+                {song.key && <span class="row-key">{song.key}</span>}
+                <button
+                  class="fav"
+                  data-fav={`${song.artistSlug}/${song.songSlug}`}
+                  aria-label="В избранное"
+                  aria-pressed="false"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4.2l2.4 5 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z"></path>
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <p class="empty" id="catalog-empty" hidden>Ничего не нашлось. Попробуйте другое слово.</p>
   </div>
 </MainLayout>
 
 <style>
-  .catalog {
+  .home {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
   }
 
-  .catalog-hero {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 4px;
-  }
-
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .catalog-title {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
-  }
-
-  .catalog-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  /* Search stays reachable while scrolling the long list */
   .search-row {
     position: sticky;
-    top: calc(var(--scroll-pad) * -1);
+    top: 0;
     z-index: 5;
-    padding: 12px 0;
-    background: linear-gradient(var(--bg-main) 72%, transparent);
+    padding: 4px 0 8px;
+    background: var(--bg);
   }
 
   .search-field {
@@ -148,155 +181,291 @@ sortedArtists.forEach(artist => {
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    width: 17px;
-    height: 17px;
-    stroke: var(--text-muted);
+    width: 18px;
+    height: 18px;
+    stroke: var(--ink-3);
     stroke-width: 1.8;
     fill: none;
     stroke-linecap: round;
     pointer-events: none;
   }
 
-  .search-field .search-input {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+  /* Базовые стили поля поиска — в общей таблице стилей (MainLayout). */
+  .search-input {
+    min-height: 52px;
+    padding: 0 16px 0 44px;
+    border-radius: var(--r);
+  }
+
+  .switch {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--surface-2);
     border-radius: 999px;
-    box-shadow: var(--shadow-sm);
   }
 
-  .search-field .search-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-
-  .catalog-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .artist-card {
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-
-  .artist-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border-color);
-    background: linear-gradient(var(--bg-elevated), transparent);
-  }
-
-  .artist-name {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
+  .switch-btn {
+    flex: 1;
+    min-height: 42px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    cursor: pointer;
+    font-size: 0.88rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    color: var(--ink-3);
   }
 
-  .artist-count {
+  .switch-btn.active {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
     flex: none;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    padding: 3px 9px;
-    border: 1px solid var(--border-color);
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
     border-radius: 999px;
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-2);
   }
 
-  .song-rows {
+  .chip.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .block-label,
+  .group-label {
+    font-size: 0.86rem;
+    font-weight: 650;
+    color: var(--ink-3);
+    padding: 10px 2px 6px;
+  }
+
+  .group + .group {
+    margin-top: 10px;
+  }
+
+  .rows {
     list-style: none;
     display: flex;
     flex-direction: column;
   }
 
-  .song-rows li + li .song-row {
-    border-top: 1px solid var(--border-color);
-  }
-
-  .song-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: var(--tap);
-    padding: 12px 18px;
-    transition: var(--transition-smooth);
-  }
-
-  .song-row:active,
-  .song-row:hover {
-    background: var(--accent-glow);
-  }
-
-  .song-row-title {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .song-row-meta {
-    flex: none;
+  .row {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-height: 62px;
+    border-bottom: 1px solid var(--line);
   }
 
-  .chip {
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background: var(--chord-bg);
-    color: var(--chord-color);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
+  .row-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 0;
+  }
+
+  .row-title {
+    font-size: 1.02rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    overflow-wrap: anywhere;
   }
 
-  .arrow {
-    width: 16px;
-    height: 16px;
-    stroke: var(--text-muted);
-    stroke-width: 2;
+  .row-artist {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+  }
+
+  .row-key {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  .fav {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-3);
+  }
+
+  .fav svg {
+    width: 19px;
+    height: 19px;
     fill: none;
-    stroke-linecap: round;
+    stroke: currentColor;
+    stroke-width: 1.7;
     stroke-linejoin: round;
-    transition: var(--transition-smooth);
   }
 
-  .song-row:hover .arrow {
+  .fav[aria-pressed='true'] {
+    color: var(--accent);
+  }
+
+  .fav[aria-pressed='true'] svg {
+    fill: var(--accent);
     stroke: var(--accent);
-    transform: translateX(2px);
+  }
+
+  .empty {
+    padding: 32px 4px;
+    color: var(--ink-3);
+    font-size: 0.92rem;
   }
 
   @media (min-width: 900px) {
-    .catalog-title {
-      font-size: 2.5rem;
+    .home {
+      gap: 22px;
     }
 
-    .catalog-hero {
-      padding-top: 0;
+    .rows {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 28px;
     }
 
-    .catalog-list {
-      column-count: 2;
-      column-gap: 22px;
-      display: block;
-    }
-
-    .artist-card {
-      display: inline-block;
-      width: 100%;
-      margin-bottom: 22px;
-      break-inside: avoid;
+    .row {
+      min-height: 58px;
     }
   }
 </style>
+
+<script>
+  import { getFavorites, getRecent } from '../utils/store.js';
+
+  const input = document.getElementById('catalog-search') as HTMLInputElement | null;
+  const empty = document.getElementById('catalog-empty');
+  const views = {
+    artist: document.getElementById('view-artist'),
+    key: document.getElementById('view-key')
+  };
+  const switchButtons = Array.from(document.querySelectorAll<HTMLElement>('.switch-btn'));
+  const chips = Array.from(document.querySelectorAll<HTMLElement>('.chip'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-search-group]'));
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-search-item]'));
+
+  let query = '';
+  let keyFilter = '';
+
+  function applyFilter() {
+    let visible = 0;
+    items.forEach(item => {
+      const text = item.getAttribute('data-search-text') || '';
+      const key = item.getAttribute('data-key') || '';
+      const matchQuery = !query || text.includes(query);
+      const matchKey = !keyFilter || key === keyFilter;
+      const show = matchQuery && matchKey;
+      item.hidden = !show;
+      if (show) visible++;
+    });
+
+    groups.forEach(group => {
+      group.hidden = group.querySelector('[data-search-item]:not([hidden])') === null;
+    });
+
+    if (empty) empty.hidden = visible !== 0;
+  }
+
+  input?.addEventListener('input', () => {
+    query = input.value.trim().toLowerCase();
+    applyFilter();
+  });
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const key = chip.getAttribute('data-key') || '';
+      keyFilter = keyFilter === key ? '' : key;
+      chips.forEach(item => item.classList.toggle('active', item === chip && keyFilter !== ''));
+      applyFilter();
+    });
+  });
+
+  switchButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.getAttribute('data-view') || 'artist';
+      switchButtons.forEach(item => item.classList.toggle('active', item === btn));
+      Object.entries(views).forEach(([name, node]) => {
+        if (node) node.hidden = name !== view;
+      });
+      applyFilter();
+    });
+  });
+
+  /* ---------------------- Недавние и избранное ---------------------- */
+  const rowBySlug = new Map<string, HTMLElement>();
+  items.forEach(item => {
+    const slug = item.getAttribute('data-slug');
+    if (slug && !rowBySlug.has(slug)) rowBySlug.set(slug, item);
+  });
+
+  function paintFavButtons(container: HTMLElement) {
+    const favorites = getFavorites();
+    container.querySelectorAll<HTMLElement>('[data-fav]').forEach(btn => {
+      const slug = btn.getAttribute('data-fav') || '';
+      const active = favorites.includes(slug);
+      btn.setAttribute('aria-pressed', String(active));
+      btn.setAttribute('aria-label', active ? 'Убрать из избранного' : 'В избранное');
+    });
+  }
+
+  function renderBlock(containerId: string, blockId: string, slugs: string[]) {
+    const container = document.getElementById(containerId);
+    const block = document.getElementById(blockId);
+    if (!container || !block) return;
+
+    container.innerHTML = '';
+    slugs.forEach(slug => {
+      const source = rowBySlug.get(slug);
+      if (!source) return;
+      const clone = source.cloneNode(true) as HTMLElement;
+      clone.removeAttribute('data-search-item');
+      clone.hidden = false;
+      container.appendChild(clone);
+    });
+
+    paintFavButtons(container);
+    block.hidden = container.children.length === 0;
+  }
+
+  function refreshBlocks() {
+    renderBlock('recent-rows', 'recent-block', getRecent());
+    renderBlock('fav-rows', 'fav-block', getFavorites());
+  }
+
+  window.addEventListener('songbook:favorites', refreshBlocks);
+  refreshBlocks();
+</script>

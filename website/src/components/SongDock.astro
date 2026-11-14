@@ -1,0 +1,343 @@
+---
+interface Props {
+  /** Идентификатор песни: artist-slug/song-slug — для памяти транспозиции. */
+  slug?: string;
+}
+
+const { slug = '' } = Astro.props;
+---
+
+<footer class="dock" aria-label="Управление песней">
+  <div class="tgroup">
+    <button class="tbtn" id="transpose-down" aria-label="Понизить на полутон">−</button>
+    <button class="tvalue" id="transpose-value" aria-label="Вернуть исходную тональность">
+      <span id="transpose-num">0</span>
+    </button>
+    <button class="tbtn" id="transpose-up" aria-label="Повысить на полутон">+</button>
+  </div>
+
+  <button class="play" id="scroll-toggle" aria-label="Начать автопрокрутку">
+    <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 5.5l10 6.5-10 6.5z" />
+    </svg>
+    <svg class="ico-pause" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 5v14M15 5v14" />
+    </svg>
+    <span class="speed-badge" id="speed-badge" hidden>1×</span>
+  </button>
+
+  <div class="tgroup">
+    <button class="tbtn small" id="scale-down" aria-label="Уменьшить текст">A−</button>
+    <button class="tbtn small" id="scale-up" aria-label="Увеличить текст">A+</button>
+  </div>
+</footer>
+
+<style>
+  .dock {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+
+  .tgroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    background: var(--surface);
+    border-radius: 999px;
+  }
+
+  .tbtn,
+  .tvalue {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 46px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    transition: color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+  }
+
+  .tbtn {
+    width: 44px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .tbtn.small {
+    width: 46px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .tvalue {
+    min-width: 38px;
+    padding: 0 4px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tbtn:hover,
+  .tvalue:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .tbtn:active,
+  .tvalue:active {
+    transform: scale(0.94);
+  }
+
+  .play {
+    position: relative;
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.16s ease, filter 0.16s ease;
+  }
+
+  .play:active {
+    transform: scale(0.94);
+  }
+
+  .play svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .play .ico-pause {
+    display: none;
+  }
+
+  .play.active .ico-play {
+    display: none;
+  }
+
+  .play.active .ico-pause {
+    display: block;
+  }
+
+  .speed-badge {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  @media (min-width: 900px) {
+    .dock {
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 10px 40px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>
+
+<script>
+  import { getOffset, setOffset, onOffset } from '../utils/chords.js';
+  import {
+    SPEEDS,
+    SPEED_LABELS,
+    getSpeedIndex,
+    getScaleIndex,
+    setScaleIndex,
+    onChange
+  } from '../utils/player.js';
+
+  const slug = document.body.dataset.songSlug || '';
+  const TRANSPOSE_KEY = `songbook:transpose:${slug}`;
+  const SCALE_KEY = 'songbook:scale';
+
+  function readNumber(key: string): number | null {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return null;
+      const value = parseInt(raw, 10);
+      return Number.isFinite(value) ? value : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeNumber(key: string, value: number) {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch (error) {
+      /* приватный режим */
+    }
+  }
+
+  /* ----------------------------- Транспозиция ----------------------------- */
+  const numDisplay = document.getElementById('transpose-num');
+  const valueButton = document.getElementById('transpose-value');
+  const btnDown = document.getElementById('transpose-down');
+  const btnUp = document.getElementById('transpose-up');
+
+  function paintOffset(offset: number) {
+    const signed = offset === 0 ? '0' : `${offset > 0 ? '+' : '−'}${Math.abs(offset)}`;
+    if (numDisplay) numDisplay.textContent = signed;
+    valueButton?.setAttribute(
+      'aria-label',
+      offset === 0 ? 'Исходная тональность' : `Вернуть исходную тональность (сейчас ${signed})`
+    );
+  }
+
+  const storedOffset = readNumber(TRANSPOSE_KEY);
+  if (storedOffset !== null) setOffset(storedOffset);
+  paintOffset(getOffset());
+
+  onOffset((offset) => {
+    paintOffset(offset);
+    writeNumber(TRANSPOSE_KEY, offset);
+  });
+
+  btnDown?.addEventListener('click', () => setOffset(getOffset() - 1));
+  btnUp?.addEventListener('click', () => setOffset(getOffset() + 1));
+  valueButton?.addEventListener('click', () => setOffset(0));
+
+  /* ------------------------------ Размер текста ---------------------------- */
+  const scaleDown = document.getElementById('scale-down');
+  const scaleUp = document.getElementById('scale-up');
+
+  const storedScale = readNumber(SCALE_KEY);
+  if (storedScale !== null) setScaleIndex(storedScale);
+
+  scaleDown?.addEventListener('click', () => {
+    writeNumber(SCALE_KEY, setScaleIndex(getScaleIndex() - 1));
+  });
+
+  scaleUp?.addEventListener('click', () => {
+    writeNumber(SCALE_KEY, setScaleIndex(getScaleIndex() + 1));
+  });
+
+  /* ------------------------------ Автоскролл ------------------------------ */
+  const toggleBtn = document.getElementById('scroll-toggle');
+  const speedBadge = document.getElementById('speed-badge');
+  const scrollContainer = document.getElementById('scroll-container');
+
+  let isScrolling = false;
+  let animationFrameId: number | null = null;
+  let wakeLock: WakeLockSentinel | null = null;
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (error) {
+      wakeLock = null;
+    }
+  }
+
+  async function releaseWakeLock() {
+    try {
+      await wakeLock?.release();
+    } catch (error) {
+      /* уже освобождён */
+    }
+    wakeLock = null;
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isScrolling && !wakeLock) {
+      void requestWakeLock();
+    }
+  });
+
+  function autoScrollLoop() {
+    if (!isScrolling || !scrollContainer) return;
+
+    scrollContainer.scrollTop += SPEEDS[getSpeedIndex()];
+
+    const atBottom =
+      scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 1;
+    if (atBottom) {
+      stopScrolling();
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(autoScrollLoop);
+  }
+
+  function startScrolling() {
+    if (isScrolling) return;
+    isScrolling = true;
+
+    void requestWakeLock();
+
+    toggleBtn?.classList.add('active');
+    toggleBtn?.setAttribute('aria-label', 'Остановить автопрокрутку');
+    if (speedBadge) {
+      speedBadge.textContent = SPEED_LABELS[getSpeedIndex()];
+      speedBadge.hidden = false;
+    }
+
+    autoScrollLoop();
+  }
+
+  function stopScrolling() {
+    if (!isScrolling) return;
+    isScrolling = false;
+
+    void releaseWakeLock();
+
+    toggleBtn?.classList.remove('active');
+    toggleBtn?.setAttribute('aria-label', 'Начать автопрокрутку');
+    if (speedBadge) speedBadge.hidden = true;
+
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    if (isScrolling) stopScrolling();
+    else startScrolling();
+  });
+
+  // Любое ручное движение останавливает прокрутку.
+  scrollContainer?.addEventListener('mousedown', stopScrolling);
+  scrollContainer?.addEventListener('wheel', stopScrolling);
+  scrollContainer?.addEventListener('touchstart', stopScrolling);
+
+  onChange(({ speedIndex }) => {
+    if (speedBadge && !speedBadge.hidden) speedBadge.textContent = SPEED_LABELS[speedIndex];
+  });
+</script>
