@@ -86,9 +86,9 @@ export function encodePng(width, height, rgba) {
 
 /* ------------------------------------------------------------------- icon */
 
-const BG = [0x1d, 0x20, 0x21];
-const BODY = [0xfe, 0x80, 0x19];
-const NECK = [0xfa, 0xbd, 0x2f];
+const BG = [0x0b, 0x0f, 0x14];
+const BODY = [0x4c, 0x9e, 0xff];
+const NECK = [0x9f, 0xcb, 0xff];
 
 /** A simple guitar glyph: warm body with a sound hole and a fretboard. */
 export function renderIcon(size) {
@@ -149,11 +149,11 @@ const OFFLINE_HTML = [
   '<meta name="viewport" content="width=device-width,initial-scale=1">',
   '<title>Нет сети</title></head>',
   '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;',
-  'text-align:center;padding:24px;background:#1D2021;color:#EBDBB2;',
+  'text-align:center;padding:24px;background:#0B0F14;color:#E9EEF3;',
   'font-family:system-ui,-apple-system,sans-serif">',
   '<div><h1 style="font-size:1.3rem">Страница ещё не сохранена</h1>',
-  '<p style="color:#928374">Откройте её один раз с интернетом — дальше она будет доступна офлайн.</p>',
-  '<p><a style="color:#FE8019" href="' + BASE + '">К списку песен</a></p></div>',
+  '<p style="color:#6B7B89">Откройте её один раз с интернетом — дальше она будет доступна офлайн.</p>',
+  '<p><a style="color:#4C9EFF" href="' + BASE + '">К списку песен</a></p></div>',
   '</body></html>',
 ].join('');
 
@@ -267,8 +267,8 @@ export function generateOfflineAssets({ distDir, base }) {
         start_url: base,
         scope: base,
         display: 'standalone',
-        background_color: '#1D2021',
-        theme_color: '#1D2021',
+        background_color: '#0B0F14',
+        theme_color: '#0B0F14',
         icons: [
           { src: `${base}icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: `${base}icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
